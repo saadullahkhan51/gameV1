@@ -26,7 +26,7 @@ pygame.display.set_caption("PRACTICE GAME!!")
 #BASE = pygame.image.load(os.path.join("imgs", "base.png"))
 #BG = pygame.image.load(os.path.join("imgs", "bg.png"))
 #need to implement OOP to the BG
-env = pygame.image.load(os.path.join("Sprites", "environment1.png"))
+env = pygame.image.load(os.path.join("Sprites", "environment.png"))
 env_x = 0
 env_vel = 3
 offset = 0
@@ -51,12 +51,28 @@ attack  = [pygame.image.load(os.path.join(attackPath, attackSprites[0])),pygame.
 
 ## ENEMY CODE WAS HERE
             
+class projectile(object):
+    def __init__(self,x,y,radius,color,facing):
+        self.x = x
+        self.y = y
+        self.radius = radius
+        self.range = 500
+        self.color = color
+        self.facing = facing
+        self.vel = 30 * facing
+        self.last = pygame.time.get_ticks()
 
+    def draw(self,win):
+        pygame.draw.circle(win, self.color, (self.x,self.y), self.radius)
+    
+    def fire(self):
+        self.x += self.vel
 #########################################
 
 #Sprite movement
-hero = player.Player(40, 540 - offset, 64 , 64)
-skeleton = Skeleton(80, 450, 150, 150)
+hero = player.Player(40, 540 - offset, 50 , 37)
+skeleton = Skeleton(300, 480 - offset, 150, 150, 100)
+arrows = []
 velLabel = pygame.font.Font(None, 50)
 velDisplay = velLabel.render(str(hero.vel), 1, (255,255,0))
 #hero2 = player(30, 424 , 50 , 37)
@@ -73,6 +89,10 @@ def drawingGameWin():
     win.blit(env,(env_x,0))
     skeleton.draw(win)
     hero.draw(win)
+    now = pygame.time.get_ticks()
+    if len(arrows):
+        if now - arrows[0].last >= 100:
+            arrows[0].draw(win)
     
     win.blit(velDisplay,(10,10))
     pygame.display.update()
@@ -92,6 +112,12 @@ while run:
             if event.key == pygame.K_ESCAPE:
                 run= False
     #hero.attack = False
+    for arrow in arrows:
+        if abs(hero.x - arrow.x) < arrow.range:
+            arrow.x += arrow.vel  # Moves the arrow by its vel
+        else:
+            arrows.pop(arrows.index(arrow))
+
     keys = pygame.key.get_pressed()
     if keys[pygame.K_d] and hero.x < win_width - hero.width:
         hero.x += hero.vel
@@ -114,11 +140,23 @@ while run:
         hero.walkCount = 0
         hero.idle = True
 
-    if keys[pygame.K_SPACE]:
+    if keys[pygame.K_u]:
         hero.attack = True
         skeleton.attack = True
         #shift_color_x -= 0.5
-    
+    if keys[pygame.K_i]:
+        hero.bowAttack = True
+        if hero.toLeft:
+            facing = -1
+        else:
+            facing = 1
+
+        arrt = projectile(round(hero.x+hero.width//2), round(hero.y + hero.height//2), 6, (0,0,0), facing)
+        if len(arrows) < 1:
+            arrows.append(projectile(round(hero.x+hero.width//2), round(hero.y + hero.height//2), 6, (0,0,0), facing))
+        skeleton.attack = True
+        #shift_color_x -= 0.5
+
     if not(hero.jump):
         '''if keys[pygame.K_s] and y < 488 - width:
                 y += vel
@@ -144,7 +182,7 @@ while run:
 
     if abs(env_x) < 650 and hero.x > 400 and hero.right:
         env_x -= env_vel
-        hero.vel = -2
+        hero.vel -= 3
     else:
         hero.vel = hero.val
     if abs(env_x) > 0 and hero.x < 400 and hero.left:

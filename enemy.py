@@ -14,7 +14,7 @@ class Enemy():
 ## flip() so we dont need left right sprites
 
 class Skeleton(Enemy):
-    def __init__(self, x, y, width, height):
+    def __init__(self, x, y, width, height, end):
         self.x = x
         self.y = y
         self.width = width
@@ -33,6 +33,8 @@ class Skeleton(Enemy):
         self.toLeft = False
         self.toRight = False
         self.attack = False
+        self.path = [self.x, end]
+        self.hitbox = (self.x, self.y+50, 30, 60)
 
         ### SKELETON CODE ######################
         black = (0,0,0)
@@ -54,6 +56,20 @@ class Skeleton(Enemy):
             self.skeletonAttack.append(frame)
         ###########
 
+    def move(self):
+        if self.vel > 0:
+            if self.x + self.vel < self.path[1]:
+                self.x += self.vel
+            else:
+                self.vel = self.vel * -1
+                self.walkCount = 0
+        else:
+            if self.x - self.vel > self.path[0]:
+                self.x += self.vel
+            else:
+                self.vel = self.vel * -1
+                self.walkCount = 0
+
     def draw(self, win):
         if self.idleCount + 1 >=16:
             self.idleCount = 0
@@ -67,3 +83,8 @@ class Skeleton(Enemy):
         else:
             self.idleCount += 0.5
             win.blit(pygame.transform.flip(self.skeletonIdle[int(self.idleCount//4)], 0, 0),(self.x, self.y))
+        self.hitbox = (self.x+60, self.y+40, 40, 60)
+        pygame.draw.rect(win, (255,0,0), self.hitbox, 2)
+    
+    def hit(self):
+        pass
